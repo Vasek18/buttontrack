@@ -3,3 +3,5 @@ weak-model: vertex_ai/gemini-1.5-pro-002
 editor-model: vertex_ai/claude-3-7-sonnet@20250219
 cache-prompts: true
 auto-commits: false
+read:
+  - CONVENTIONS.md
