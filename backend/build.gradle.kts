@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.1.21"
+    alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor.plugin)
     alias(libs.plugins.kotlin.serialization)
 }
@@ -36,13 +36,4 @@ dependencies {
     testImplementation(libs.ktor.server.tests)
     testImplementation(libs.kotlin.test.junit5)
     testImplementation(libs.kotlin.reflect) // Required by Exposed
-}
-
-// Task to run Flyway migrations
-tasks.register("dbMigrate") {
-    group = "database"
-    description = "Runs Flyway database migrations"
-    doLast {
-        println("Flyway migration task. Migrations will be applied by the backend application.")
-    }
 }

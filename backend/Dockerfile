@@ -16,8 +16,8 @@ WORKDIR /app
 
 # Copy the built application from the build stage
 COPY --from=build /app/build/install/buttontrack .
-COPY --from=build /app/src/main/resources/application.yaml ./conf/
+COPY --from=build /app/src/main/resources/application.conf ./conf/
 
 EXPOSE 8080
 
-CMD ["bin/buttontrack", "-config=conf/application.yaml"]
+CMD ["bin/buttontrack", "-config", "conf/application.conf"]

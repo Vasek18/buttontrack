@@ -1,4 +1,3 @@
-// backend/src/main/kotlin/com/buttontrack/plugins/Serialization.kt
 package com.buttontrack
 
 import io.ktor.serialization.kotlinx.json.*

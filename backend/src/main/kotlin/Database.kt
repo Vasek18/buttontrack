@@ -11,9 +11,9 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 
 object DatabaseFactory {
     fun init(environment: ApplicationEnvironment) {
-        val dbUrl = environment.config.property("ktor.deployment.dbUrl").getString()
-        val dbUser = environment.config.property("ktor.deployment.dbUser").getString()
-        val dbPassword = environment.config.property("ktor.deployment.dbPassword").getString()
+        val dbUrl = System.getenv("DB_URL") ?: environment.config.propertyOrNull("ktor.deployment.dbUrl")?.getString() ?: "jdbc:postgresql://db:5432/buttontrack_db"
+        val dbUser = System.getenv("DB_USER") ?: environment.config.propertyOrNull("ktor.deployment.dbUser")?.getString() ?: "buttontrack_user"
+        val dbPassword = System.getenv("DB_PASSWORD") ?: environment.config.propertyOrNull("ktor.deployment.dbPassword")?.getString() ?: "buttontrack_password"
 
         val config = HikariConfig().apply {
             jdbcUrl = dbUrl
@@ -26,10 +26,15 @@ object DatabaseFactory {
         }
         val dataSource = HikariDataSource(config)
 
-        val flyway = Flyway.configure().dataSource(dataSource).load()
-        flyway.migrate()
+        try {
+            val flyway = Flyway.configure().dataSource(dataSource).load()
+            flyway.migrate()
+        } catch (e: Exception) {
+            environment.log.error("Failed to run Flyway migrations: ${e.message}")
+        }
 
         Database.connect(dataSource)
+        environment.log.info("Database connected successfully")
     }
 
     suspend fun <T> dbQuery(block: suspend () -> T): T =
@@ -37,5 +42,9 @@ object DatabaseFactory {
 }
 
 fun Application.configureDatabase() {
-    DatabaseFactory.init(environment)
+    try {
+        DatabaseFactory.init(environment)
+    } catch (e: Exception) {
+        log.error("Failed to initialize database: ${e.message}")
+    }
 }
