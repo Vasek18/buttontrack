@@ -18,16 +18,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    environment:
-      # These will be picked up by your Ktor application
-      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-buttontrack_db}
-      DB_USER: ${POSTGRES_USER:-buttontrack_user}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-buttontrack_password}
-      KTOR_ENV: development
+    env_file:
+      - ./.env
     ports:
       - "8080:8080"
     depends_on:
-      - db # Ensure db is up before backend starts
+      - db
     restart: unless-stopped
 
 volumes:

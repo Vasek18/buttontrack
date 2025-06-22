@@ -1,8 +1,5 @@
-// backend/build.gradle.kts
 plugins {
-    // Kotlin JVM plugin version explicitly defined here as it's the plugin itself
     kotlin("jvm") version "2.1.21"
-    // Use alias for Ktor plugin now that it's in libs.versions.toml
     alias(libs.plugins.ktor.plugin)
     alias(libs.plugins.kotlin.serialization)
 }
@@ -12,9 +9,6 @@ version = "0.0.1"
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
 }
-
-// Removed the repositories block from here.
-// Repositories should be defined in settings.gradle.kts when using FAIL_ON_PROJECT_REPOS mode.
 
 dependencies {
     // Ktor core dependencies from libs.versions.toml
@@ -44,9 +38,7 @@ dependencies {
     testImplementation(libs.kotlin.reflect) // Required by Exposed
 }
 
-// The ext block is no longer needed as versions are managed in libs.versions.toml
-
-// Task to run Flyway migrations (unchanged)
+// Task to run Flyway migrations
 tasks.register("dbMigrate") {
     group = "database"
     description = "Runs Flyway database migrations"

@@ -1,4 +1,3 @@
-// backend/settings.gradle.kts
 rootProject.name = "buttontrack"
 
 pluginManagement {
@@ -7,8 +6,6 @@ pluginManagement {
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
     }
-    // For older Gradle versions, you might need:
-    // enableFeaturePreview("VERSION_CATALOGS")
 }
 
 dependencyResolutionManagement {
