@@ -1,22 +1,19 @@
-package com.example
+package com.buttontrack
 
 import io.ktor.server.application.*
-import org.flywaydb.core.Flyway
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 
-fun main(args: Array<String>) {
-    io.ktor.server.netty.EngineMain.main(args)
+fun main() {
+    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+        .start(wait = true)
 }
 
 fun Application.module() {
-    migrateDatabase()
-
+    // Configure Ktor features
+    configureSerialization()
     configureRouting()
-}
 
-fun migrateDatabase() {
-    Flyway.configure()
-        .dataSource(Env.jdbcUrl, Env.dbUser, Env.dbPassword)
-        .locations("classpath:db/migration")
-        .load()
-        .migrate()
+    // Initialize database connection and run migrations
+    configureDatabase()
 }

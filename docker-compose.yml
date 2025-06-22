@@ -3,11 +3,12 @@ version: '3.9'
 services:
   db:
     image: postgres:16
+    restart: unless-stopped
     container_name: buttontrack-db
     environment:
-      POSTGRES_DB: buttontrack
-      POSTGRES_USER: btuser
-      POSTGRES_PASSWORD: btpass
+      POSTGRES_DB: ${POSTGRES_DB:-buttontrack_db}
+      POSTGRES_USER: ${POSTGRES_USER:-buttontrack_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-buttontrack_password}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
@@ -16,17 +17,18 @@ services:
   backend:
     build:
       context: ./backend
-    container_name: buttontrack-backend
+      dockerfile: Dockerfile
     environment:
-      DATABASE_URL: jdbc:postgresql://db:5432/buttontrack
-      DATABASE_USER: btuser
-      DATABASE_PASSWORD: btpass
+      # These will be picked up by your Ktor application
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-buttontrack_db}
+      DB_USER: ${POSTGRES_USER:-buttontrack_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-buttontrack_password}
+      KTOR_ENV: development
     ports:
       - "8080:8080"
     depends_on:
-      - db
-    volumes:
-      - ./backend/.env:/app/.env
+      - db # Ensure db is up before backend starts
+    restart: unless-stopped
 
 volumes:
   postgres-data:
