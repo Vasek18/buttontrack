@@ -1,4 +1,3 @@
-// backend/src/main/kotlin/Database.kt
 package com.buttontrack
 
 import com.zaxxer.hikari.HikariConfig
