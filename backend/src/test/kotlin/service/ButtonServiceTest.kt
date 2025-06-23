@@ -12,7 +12,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -21,7 +20,7 @@ import kotlin.test.assertTrue
 class ButtonServiceTest {
 
     private lateinit var buttonService: ButtonService
-    private val testUserId = UUID.randomUUID().toString()
+    private val testUserId = 1
 
     @BeforeEach
     fun setup() {
@@ -53,7 +52,7 @@ class ButtonServiceTest {
         assertEquals(testUserId, result.userId)
         assertEquals("Test Button", result.title)
         assertEquals("#FF0000", result.color)
-        assertNotNull(result.id)
+        assertTrue(result.id > 0)
         assertNotNull(result.createdAt)
         assertNotNull(result.updatedAt)
     }
@@ -77,23 +76,17 @@ class ButtonServiceTest {
 
     @Test
     fun `getButton should return null when button does not exist`() = runBlocking {
-        val nonExistentId = UUID.randomUUID().toString()
+        val nonExistentId = 999
 
         val result = buttonService.getButton(nonExistentId)
 
         assertNull(result)
     }
 
-    @Test
-    fun `getButton should throw exception for invalid UUID`() = runBlocking {
-        assertThrows<IllegalArgumentException> {
-            buttonService.getButton("invalid-uuid")
-        }
-    }
 
     @Test
     fun `getButtonsByUser should return buttons for specific user`() = runBlocking {
-        val otherUserId = UUID.randomUUID().toString()
+        val otherUserId = 2
         
         buttonService.createButton(CreateButtonRequest(testUserId, "User1 Button1", "#FF0000"))
         buttonService.createButton(CreateButtonRequest(testUserId, "User1 Button2", "#00FF00"))
@@ -114,12 +107,6 @@ class ButtonServiceTest {
         assertTrue(result.isEmpty())
     }
 
-    @Test
-    fun `getButtonsByUser should throw exception for invalid UUID`() = runBlocking {
-        assertThrows<IllegalArgumentException> {
-            buttonService.getButtonsByUser("invalid-uuid")
-        }
-    }
 
     @Test
     fun `updateButton should update title and color`() = runBlocking {
@@ -146,7 +133,7 @@ class ButtonServiceTest {
 
     @Test
     fun `updateButton should return null when button does not exist`() = runBlocking {
-        val nonExistentId = UUID.randomUUID().toString()
+        val nonExistentId = 999
         val updateRequest = UpdateButtonRequest(
             title = "Updated Title",
             color = "#00FF00"
@@ -157,17 +144,6 @@ class ButtonServiceTest {
         assertNull(result)
     }
 
-    @Test
-    fun `updateButton should throw exception for invalid UUID`() = runBlocking {
-        val updateRequest = UpdateButtonRequest(
-            title = "Updated Title",
-            color = "#00FF00"
-        )
-
-        assertThrows<IllegalArgumentException> {
-            buttonService.updateButton("invalid-uuid", updateRequest)
-        }
-    }
 
     @Test
     fun `deleteButton should delete existing button and return true`() = runBlocking {
@@ -188,17 +164,11 @@ class ButtonServiceTest {
 
     @Test
     fun `deleteButton should return false when button does not exist`() = runBlocking {
-        val nonExistentId = UUID.randomUUID().toString()
+        val nonExistentId = 999
 
         val result = buttonService.deleteButton(nonExistentId)
 
         assertTrue(!result)
     }
 
-    @Test
-    fun `deleteButton should throw exception for invalid UUID`() = runBlocking {
-        assertThrows<IllegalArgumentException> {
-            buttonService.deleteButton("invalid-uuid")
-        }
-    }
 }

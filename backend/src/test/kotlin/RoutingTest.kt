@@ -17,13 +17,12 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertContains
 
 class RoutingTest {
 
-    private val testUserId = UUID.randomUUID().toString()
+    private val testUserId = 1
 
     @BeforeEach
     fun setup() {
@@ -60,7 +59,7 @@ class RoutingTest {
 
         assertEquals(HttpStatusCode.Created, response.status)
         val responseBody = response.bodyAsText()
-        assertContains(responseBody, testUserId)
+        assertContains(responseBody, testUserId.toString())
         assertContains(responseBody, "Test Button")
         assertContains(responseBody, "#FF0000")
     }
@@ -81,6 +80,32 @@ class RoutingTest {
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertContains(response.bodyAsText(), "Invalid request")
+    }
+
+    @Test
+    fun `POST api buttons returns 400 for validation errors`() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                json()
+            }
+            configureRouting()
+        }
+
+        val response = client.post("/api/buttons") {
+            contentType(ContentType.Application.Json)
+            setBody(CreateButtonRequest(
+                userId = 0,
+                title = "",
+                color = "invalid-color"
+            ))
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        val responseBody = response.bodyAsText()
+        assertContains(responseBody, "Validation failed")
+        assertContains(responseBody, "userId must be a positive integer")
+        assertContains(responseBody, "title cannot be empty")
+        assertContains(responseBody, "color must be a valid hex color code")
     }
 
     @Test
@@ -166,8 +191,8 @@ class RoutingTest {
             ))
         }
 
-        val buttonData = Json.decodeFromString<Map<String, String>>(createResponse.bodyAsText())
-        val buttonId = buttonData["id"]!!
+        val buttonData = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(createResponse.bodyAsText())
+        val buttonId = buttonData["id"]!!.toString().replace("\"", "")
 
         val response = client.get("/api/buttons/$buttonId")
 
@@ -186,7 +211,7 @@ class RoutingTest {
             configureRouting()
         }
 
-        val nonExistentId = UUID.randomUUID().toString()
+        val nonExistentId = "999"
         val response = client.get("/api/buttons/$nonExistentId")
 
         assertEquals(HttpStatusCode.NotFound, response.status)
@@ -194,7 +219,7 @@ class RoutingTest {
     }
 
     @Test
-    fun `GET api buttons id returns 400 for invalid UUID`() = testApplication {
+    fun `GET api buttons id returns 400 for invalid ID format`() = testApplication {
         application {
             install(ContentNegotiation) {
                 json()
@@ -202,10 +227,10 @@ class RoutingTest {
             configureRouting()
         }
 
-        val response = client.get("/api/buttons/invalid-uuid")
+        val response = client.get("/api/buttons/invalid-id")
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertContains(response.bodyAsText(), "Invalid button ID")
+        assertContains(response.bodyAsText(), "Invalid button ID format")
     }
 
     @Test
@@ -226,8 +251,8 @@ class RoutingTest {
             ))
         }
 
-        val buttonData = Json.decodeFromString<Map<String, String>>(createResponse.bodyAsText())
-        val buttonId = buttonData["id"]!!
+        val buttonData = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(createResponse.bodyAsText())
+        val buttonId = buttonData["id"]!!.toString().replace("\"", "")
 
         val response = client.put("/api/buttons/$buttonId") {
             contentType(ContentType.Application.Json)
@@ -252,7 +277,7 @@ class RoutingTest {
             configureRouting()
         }
 
-        val nonExistentId = UUID.randomUUID().toString()
+        val nonExistentId = "999"
         val response = client.put("/api/buttons/$nonExistentId") {
             contentType(ContentType.Application.Json)
             setBody(UpdateButtonRequest(
@@ -301,8 +326,8 @@ class RoutingTest {
             ))
         }
 
-        val buttonData = Json.decodeFromString<Map<String, String>>(createResponse.bodyAsText())
-        val buttonId = buttonData["id"]!!
+        val buttonData = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(createResponse.bodyAsText())
+        val buttonId = buttonData["id"]!!.toString().replace("\"", "")
 
         val response = client.delete("/api/buttons/$buttonId")
 
@@ -321,7 +346,7 @@ class RoutingTest {
             configureRouting()
         }
 
-        val nonExistentId = UUID.randomUUID().toString()
+        val nonExistentId = "999"
         val response = client.delete("/api/buttons/$nonExistentId")
 
         assertEquals(HttpStatusCode.NotFound, response.status)
@@ -329,7 +354,7 @@ class RoutingTest {
     }
 
     @Test
-    fun `DELETE api buttons id returns 400 for invalid UUID`() = testApplication {
+    fun `DELETE api buttons id returns 400 for invalid ID format`() = testApplication {
         application {
             install(ContentNegotiation) {
                 json()
@@ -337,9 +362,9 @@ class RoutingTest {
             configureRouting()
         }
 
-        val response = client.delete("/api/buttons/invalid-uuid")
+        val response = client.delete("/api/buttons/invalid-id")
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertContains(response.bodyAsText(), "Invalid button ID")
+        assertContains(response.bodyAsText(), "Invalid button ID format")
     }
 }
