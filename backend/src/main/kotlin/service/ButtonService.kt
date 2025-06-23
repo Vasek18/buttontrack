@@ -21,7 +21,7 @@ class ButtonService {
 
     suspend fun createButton(request: CreateButtonRequest): ButtonResponse = dbQuery {
         val button = Button.new {
-            userId = UUID.fromString(request.userId)
+            userId = request.userId
             title = request.title
             color = request.color
             createdAt = Instant.now()
@@ -30,27 +30,27 @@ class ButtonService {
         button.toResponse()
     }
 
-    suspend fun getButton(id: String): ButtonResponse? = dbQuery {
-        Button.findById(UUID.fromString(id))?.toResponse()
+    suspend fun getButton(id: Int): ButtonResponse? = dbQuery {
+        Button.findById(id)?.toResponse()
     }
 
 
-    suspend fun getButtonsByUser(userId: String): List<ButtonResponse> = dbQuery {
-        Button.find { ButtonTable.userId eq UUID.fromString(userId) }.map { it.toResponse() }
+    suspend fun getButtonsByUser(userId: Int): List<ButtonResponse> = dbQuery {
+        Button.find { ButtonTable.userId eq userId }.map { it.toResponse() }
     }
 
-    suspend fun updateButton(id: String, request: UpdateButtonRequest): ButtonResponse? = dbQuery {
-        val button = Button.findById(UUID.fromString(id))
+    suspend fun updateButton(id: Int, request: UpdateButtonRequest): ButtonResponse? = dbQuery {
+        val button = Button.findById(id)
         button?.let {
-            request.title?.let { title -> it.title = title }
-            request.color?.let { color -> it.color = color }
+            it.title = request.title
+            it.color = request.color
             it.updatedAt = Instant.now()
             it.toResponse()
         }
     }
 
-    suspend fun deleteButton(id: String): Boolean = dbQuery {
-        val button = Button.findById(UUID.fromString(id))
+    suspend fun deleteButton(id: Int): Boolean = dbQuery {
+        val button = Button.findById(id)
         button?.let {
             it.delete()
             true
