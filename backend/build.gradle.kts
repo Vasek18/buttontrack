@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.javatime)
     implementation(libs.postgresql.driver)
     implementation(libs.hikaricp) // Added HikariCP dependency
 
