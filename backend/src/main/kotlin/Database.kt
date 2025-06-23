@@ -10,9 +10,12 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 
 object DatabaseFactory {
     fun init(environment: ApplicationEnvironment) {
-        val dbUrl = System.getenv("DB_URL") ?: environment.config.propertyOrNull("ktor.deployment.dbUrl")?.getString() ?: "jdbc:postgresql://db:5432/buttontrack_db"
-        val dbUser = System.getenv("DB_USER") ?: environment.config.propertyOrNull("ktor.deployment.dbUser")?.getString() ?: "buttontrack_user"
-        val dbPassword = System.getenv("DB_PASSWORD") ?: environment.config.propertyOrNull("ktor.deployment.dbPassword")?.getString() ?: "buttontrack_password"
+        val dbUrl = System.getenv("DB_URL") ?: System.getProperty("DB_URL") ?: environment.config.propertyOrNull("ktor.deployment.dbUrl")?.getString()
+            ?: throw IllegalStateException("DB_URL environment variable or system property is required")
+        val dbUser = System.getenv("DB_USER") ?: System.getProperty("DB_USER") ?: environment.config.propertyOrNull("ktor.deployment.dbUser")?.getString()
+            ?: throw IllegalStateException("DB_USER environment variable or system property is required")
+        val dbPassword = System.getenv("DB_PASSWORD") ?: System.getProperty("DB_PASSWORD") ?: environment.config.propertyOrNull("ktor.deployment.dbPassword")?.getString()
+            ?: throw IllegalStateException("DB_PASSWORD environment variable or system property is required")
 
         val config = HikariConfig().apply {
             jdbcUrl = dbUrl

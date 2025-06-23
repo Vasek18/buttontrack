@@ -7,10 +7,10 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    // Initialize database connection and run migrations first
+    configureDatabase()
+    
     // Configure Ktor features
     configureSerialization()
     configureRouting()
-
-    // Initialize database connection and run migrations
-    configureDatabase()
 }
