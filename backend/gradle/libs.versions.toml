@@ -33,9 +33,9 @@ flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql
 hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" } # Added HikariCP
 
 # Testing
-ktor-server-tests = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
+ktor-server-tests = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
-kotlin-reflect = { module = "org.jetbrains.kotlin.jvm:kotlin-reflect", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 
 [plugins]
 ktor-plugin = { id = "io.ktor.plugin", version.ref = "ktor" }

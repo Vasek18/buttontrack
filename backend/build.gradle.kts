@@ -37,4 +37,5 @@ dependencies {
     testImplementation(libs.ktor.server.tests)
     testImplementation(libs.kotlin.test.junit5)
     testImplementation(libs.kotlin.reflect) // Required by Exposed
+    testImplementation("com.h2database:h2:2.2.224") // In-memory database for testing
 }
