@@ -9,44 +9,29 @@ A personal behavior-tracking web app where users can create and press custom but
 ### Local Development
 ```bash
 docker compose up -d
-cd backend
-./gradlew run
-```
-
-## API Testing
-
-**Create a button:**
-```bash
-curl -X POST "http://localhost:8080/api/buttons" \
-  -H "Content-Type: application/json" \
-  -d '{"userId":"1","title":"Morning Exercise","color":"#4CAF50"}'
-```
-
-**List user's buttons:**
-```bash
-curl -X GET "http://localhost:8080/api/buttons?userId=1"
-```
-
-**Get specific button:**
-```bash
-curl -X GET "http://localhost:8080/api/buttons/{button-id}"
-```
-
-**Update button:**
-```bash
-curl -X PUT "http://localhost:8080/api/buttons/{button-id}" \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Updated Title","color":"#FF5722"}'
-```
-
-**Delete button:**
-```bash
-curl -X DELETE "http://localhost:8080/api/buttons/{button-id}"
+cd backend && ./gradlew run
+cd frontend && npm start
 ```
 
 ## Tech Stack
 
 - **Backend:** Kotlin + Ktor
 - **Database:** PostgreSQL with Flyway migrations
-- **Frontend:** React + TypeScript (planned)
-- **Auth:** Google OAuth (planned)
+- **Frontend:** React + TypeScript
+- **Auth:** Google OAuth
+- **Infrastructure:** Docker + docker-compose
+
+## Environment Variables
+
+### Frontend (frontend/.env)
+```
+REACT_APP_API_URL=http://localhost:8080
+```
+
+### Backend/Database (.env)
+```
+DB_URL=jdbc:postgresql://localhost:5432/db_name
+DB_USER=user
+DB_PASSWORD=password
+DB_NAME=db_name
+```
