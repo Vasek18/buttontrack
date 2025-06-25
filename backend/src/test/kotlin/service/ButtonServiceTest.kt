@@ -4,6 +4,7 @@ import com.buttontrack.DatabaseFactory
 import com.buttontrack.dto.CreateButtonRequest
 import com.buttontrack.dto.UpdateButtonRequest
 import com.buttontrack.models.ButtonTable
+import com.buttontrack.models.ButtonPressTable
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -26,7 +27,7 @@ class ButtonServiceTest {
     fun setup() {
         Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
         transaction {
-            SchemaUtils.create(ButtonTable)
+            SchemaUtils.create(ButtonTable, ButtonPressTable)
         }
         buttonService = ButtonService()
     }
@@ -34,7 +35,7 @@ class ButtonServiceTest {
     @AfterEach
     fun teardown() {
         transaction {
-            SchemaUtils.drop(ButtonTable)
+            SchemaUtils.drop(ButtonPressTable, ButtonTable)
         }
     }
 
@@ -167,6 +168,29 @@ class ButtonServiceTest {
         val nonExistentId = 999
 
         val result = buttonService.deleteButton(nonExistentId)
+
+        assertTrue(!result)
+    }
+
+    @Test
+    fun `pressButton should return true when button exists`() = runBlocking {
+        val request = CreateButtonRequest(
+            userId = testUserId,
+            title = "Test Button",
+            color = "#FF0000"
+        )
+        val created = buttonService.createButton(request)
+
+        val result = buttonService.pressButton(created.id)
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun `pressButton should return false when button does not exist`() = runBlocking {
+        val nonExistentId = 999
+
+        val result = buttonService.pressButton(nonExistentId)
 
         assertTrue(!result)
     }

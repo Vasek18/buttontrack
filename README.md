@@ -35,3 +35,20 @@ DB_USER=user
 DB_PASSWORD=password
 DB_NAME=db_name
 ```
+
+## Testing
+
+### Backend Tests
+```bash
+cd backend && ./gradlew test
+```
+
+### Frontend Tests
+```bash
+cd frontend && npm test
+```
+
+For a single test run without watch mode:
+```bash
+npm test -- --watchAll=false
+```

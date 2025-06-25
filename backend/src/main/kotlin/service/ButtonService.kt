@@ -6,6 +6,8 @@ import com.buttontrack.dto.CreateButtonRequest
 import com.buttontrack.dto.UpdateButtonRequest
 import com.buttontrack.models.Button
 import com.buttontrack.models.ButtonTable
+import com.buttontrack.models.ButtonPress
+import com.buttontrack.models.ButtonPressTable
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
@@ -15,7 +17,7 @@ class ButtonService {
 
     init {
         transaction {
-            SchemaUtils.createMissingTablesAndColumns(ButtonTable)
+            SchemaUtils.createMissingTablesAndColumns(ButtonTable, ButtonPressTable)
         }
     }
 
@@ -55,6 +57,19 @@ class ButtonService {
             it.delete()
             true
         } ?: false
+    }
+
+    suspend fun pressButton(buttonId: Int): Boolean = dbQuery {
+        val button = Button.findById(buttonId)
+        if (button != null) {
+            ButtonPress.new {
+                this.buttonId = buttonId
+                pressedAt = Instant.now()
+            }
+            true
+        } else {
+            false
+        }
     }
 
 }

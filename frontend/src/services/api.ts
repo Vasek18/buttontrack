@@ -34,4 +34,8 @@ export const buttonApi = {
   deleteButton: async (id: number): Promise<void> => {
     await api.delete(`/api/buttons/${id}`);
   },
+
+  pressButton: async (id: number): Promise<void> => {
+    await api.post(`/api/press/${id}`);
+  },
 };

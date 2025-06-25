@@ -26,9 +26,13 @@ const ButtonList: React.FC = () => {
     fetchButtons();
   }, [userId]);
 
-  const handleButtonPress = (button: Button) => {
-    console.log('Button pressed:', button.title);
-    // TODO: Implement button press recording
+  const handleButtonPress = async (button: Button) => {
+    try {
+      await buttonApi.pressButton(button.id);
+      console.log('Button pressed successfully:', button.title);
+    } catch (err) {
+      console.error('Error pressing button:', err);
+    }
   };
 
   if (loading) {

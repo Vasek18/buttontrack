@@ -109,5 +109,27 @@ fun Application.configureRouting() {
                 }
             }
         }
+
+        route("/api/press") {
+            post("/{id}") {
+                try {
+                    val idStr = call.parameters["id"] ?: return@post call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("error" to "Missing button ID")
+                    )
+                    val id = idStr.toInt()
+                    val success = buttonService.pressButton(id)
+                    if (success) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to "Button pressed successfully"))
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, mapOf("error" to "Button not found"))
+                    }
+                } catch (e: NumberFormatException) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid button ID format"))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to press button"))
+                }
+            }
+        }
     }
 }

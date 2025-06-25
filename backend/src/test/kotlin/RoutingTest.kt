@@ -3,6 +3,7 @@ package com.buttontrack
 import com.buttontrack.dto.CreateButtonRequest
 import com.buttontrack.dto.UpdateButtonRequest
 import com.buttontrack.models.ButtonTable
+import com.buttontrack.models.ButtonPressTable
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -28,14 +29,14 @@ class RoutingTest {
     fun setup() {
         Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
         transaction {
-            SchemaUtils.create(ButtonTable)
+            SchemaUtils.create(ButtonTable, ButtonPressTable)
         }
     }
 
     @AfterEach
     fun teardown() {
         transaction {
-            SchemaUtils.drop(ButtonTable)
+            SchemaUtils.drop(ButtonPressTable, ButtonTable)
         }
     }
 
@@ -363,6 +364,64 @@ class RoutingTest {
         }
 
         val response = client.delete("/api/buttons/invalid-id")
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertContains(response.bodyAsText(), "Invalid button ID format")
+    }
+
+    @Test
+    fun `POST api press id records button press successfully`() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                json()
+            }
+            configureRouting()
+        }
+
+        val createResponse = client.post("/api/buttons") {
+            contentType(ContentType.Application.Json)
+            setBody(CreateButtonRequest(
+                userId = testUserId,
+                title = "Test Button",
+                color = "#FF0000"
+            ))
+        }
+
+        val buttonData = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(createResponse.bodyAsText())
+        val buttonId = buttonData["id"]!!.toString().replace("\"", "")
+
+        val response = client.post("/api/press/$buttonId")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertContains(response.bodyAsText(), "Button pressed successfully")
+    }
+
+    @Test
+    fun `POST api press id returns 404 for non-existent button`() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                json()
+            }
+            configureRouting()
+        }
+
+        val nonExistentId = "999"
+        val response = client.post("/api/press/$nonExistentId")
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+        assertContains(response.bodyAsText(), "Button not found")
+    }
+
+    @Test
+    fun `POST api press id returns 400 for invalid ID format`() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                json()
+            }
+            configureRouting()
+        }
+
+        val response = client.post("/api/press/invalid-id")
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertContains(response.bodyAsText(), "Invalid button ID format")
