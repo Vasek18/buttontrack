@@ -131,7 +131,7 @@ const EditButtonsPage: React.FC = () => {
           )}
 
           <div className="card">
-            {buttons.length === 0 ? (
+            {!buttons || buttons.length === 0 ? (
               <div className="card-body text-center py-5">
                 <p className="fs-5 mb-3 text-muted">No buttons created yet</p>
                 <p className="text-muted mb-0">Click "Add New Button" to get started</p>

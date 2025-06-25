@@ -55,7 +55,7 @@ const ButtonList: React.FC = () => {
     );
   }
 
-  if (buttons.length === 0) {
+  if (!buttons || buttons.length === 0) {
     return (
       <div className="d-flex flex-column align-items-center justify-content-center text-muted" style={{ minHeight: '300px' }}>
         <p className="fs-5 mb-3">No buttons found</p>
