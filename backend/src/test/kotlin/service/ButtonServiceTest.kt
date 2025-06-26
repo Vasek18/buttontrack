@@ -195,4 +195,53 @@ class ButtonServiceTest {
         assertTrue(!result)
     }
 
+    @Test
+    fun `getButtonPressStats should return stats with timestamp parameters`() = runBlocking {
+        val request = CreateButtonRequest(
+            userId = testUserId,
+            title = "Test Button",
+            color = "#FF0000"
+        )
+        val created = buttonService.createButton(request)
+        
+        buttonService.pressButton(created.id)
+
+        val startTime = "2025-06-24T12:00:00Z"
+        val endTime = "2025-06-26T12:00:00Z"
+        val result = buttonService.getButtonPressStats(testUserId, startTime, endTime)
+
+        assertNotNull(result)
+        assertEquals(1, result.buttonStats.size)
+        assertEquals("Test Button", result.buttonStats[0].buttonTitle)
+        assertEquals("#FF0000", result.buttonStats[0].buttonColor)
+        assertTrue(result.buttonStats[0].presses.isNotEmpty())
+    }
+
+    @Test
+    fun `getButtonPressStats should return stats with default time range when no timestamps provided`() = runBlocking {
+        val request = CreateButtonRequest(
+            userId = testUserId,
+            title = "Test Button",
+            color = "#FF0000"
+        )
+        val created = buttonService.createButton(request)
+        
+        buttonService.pressButton(created.id)
+
+        val result = buttonService.getButtonPressStats(testUserId, null, null)
+
+        assertNotNull(result)
+        assertEquals(1, result.buttonStats.size)
+        assertEquals("Test Button", result.buttonStats[0].buttonTitle)
+        assertTrue(result.buttonStats[0].presses.isNotEmpty())
+    }
+
+    @Test
+    fun `getButtonPressStats should return empty stats for user with no buttons`() = runBlocking {
+        val result = buttonService.getButtonPressStats(testUserId, null, null)
+
+        assertNotNull(result)
+        assertTrue(result.buttonStats.isEmpty())
+    }
+
 }

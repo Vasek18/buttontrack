@@ -426,4 +426,114 @@ class RoutingTest {
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertContains(response.bodyAsText(), "Invalid button ID format")
     }
+
+    @Test
+    fun `GET api stats requires userId parameter`() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                json()
+            }
+            configureRouting()
+        }
+
+        val response = client.get("/api/stats")
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertContains(response.bodyAsText(), "userId parameter is required")
+    }
+
+    @Test
+    fun `GET api stats returns stats successfully with default time range`() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                json()
+            }
+            configureRouting()
+        }
+
+        val createResponse = client.post("/api/buttons") {
+            contentType(ContentType.Application.Json)
+            setBody(CreateButtonRequest(
+                userId = testUserId,
+                title = "Test Button",
+                color = "#FF0000"
+            ))
+        }
+
+        val buttonData = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(createResponse.bodyAsText())
+        val buttonId = buttonData["id"]!!.toString().replace("\"", "")
+
+        client.post("/api/press/$buttonId")
+
+        val response = client.get("/api/stats?userId=$testUserId")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val responseBody = response.bodyAsText()
+        assertContains(responseBody, "buttonStats")
+        assertContains(responseBody, "Test Button")
+    }
+
+    @Test
+    fun `GET api stats returns stats successfully with timestamp parameters`() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                json()
+            }
+            configureRouting()
+        }
+
+        val createResponse = client.post("/api/buttons") {
+            contentType(ContentType.Application.Json)
+            setBody(CreateButtonRequest(
+                userId = testUserId,
+                title = "Test Button",
+                color = "#FF0000"
+            ))
+        }
+
+        val buttonData = Json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(createResponse.bodyAsText())
+        val buttonId = buttonData["id"]!!.toString().replace("\"", "")
+
+        client.post("/api/press/$buttonId")
+
+        val endTime = "2025-06-25T12:00:00Z"
+        val startTime = "2025-06-24T12:00:00Z"
+        val response = client.get("/api/stats?userId=$testUserId&start=$startTime&end=$endTime")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val responseBody = response.bodyAsText()
+        assertContains(responseBody, "buttonStats")
+    }
+
+    @Test
+    fun `GET api stats returns empty stats for user with no button presses`() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                json()
+            }
+            configureRouting()
+        }
+
+        val response = client.get("/api/stats?userId=$testUserId")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val responseBody = response.bodyAsText()
+        assertContains(responseBody, "buttonStats")
+        assertContains(responseBody, "[]")
+    }
+
+    @Test
+    fun `GET api stats returns 400 for invalid userId format`() = testApplication {
+        application {
+            install(ContentNegotiation) {
+                json()
+            }
+            configureRouting()
+        }
+
+        val response = client.get("/api/stats?userId=invalid")
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertContains(response.bodyAsText(), "Invalid userId format")
+    }
 }

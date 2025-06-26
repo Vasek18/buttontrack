@@ -131,5 +131,28 @@ fun Application.configureRouting() {
                 }
             }
         }
+
+        route("/api/stats") {
+            get {
+                try {
+                    val userIdStr = call.request.queryParameters["userId"]
+                    if (userIdStr.isNullOrBlank()) {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to "userId parameter is required"))
+                        return@get
+                    }
+                    
+                    val userId = userIdStr.toInt()
+                    val startTimestamp = call.request.queryParameters["start"]
+                    val endTimestamp = call.request.queryParameters["end"]
+                    
+                    val stats = buttonService.getButtonPressStats(userId, startTimestamp, endTimestamp)
+                    call.respond(HttpStatusCode.OK, stats)
+                } catch (e: NumberFormatException) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid userId format"))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to fetch statistics"))
+                }
+            }
+        }
     }
 }

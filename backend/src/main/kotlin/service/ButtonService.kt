@@ -4,13 +4,20 @@ import com.buttontrack.DatabaseFactory.dbQuery
 import com.buttontrack.dto.ButtonResponse
 import com.buttontrack.dto.CreateButtonRequest
 import com.buttontrack.dto.UpdateButtonRequest
+import com.buttontrack.dto.StatsResponse
+import com.buttontrack.dto.ButtonPressStatsResponse
+import com.buttontrack.dto.ButtonPressData
 import com.buttontrack.models.Button
 import com.buttontrack.models.ButtonTable
 import com.buttontrack.models.ButtonPress
 import com.buttontrack.models.ButtonPressTable
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.and
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 class ButtonService {
@@ -70,6 +77,57 @@ class ButtonService {
         } else {
             false
         }
+    }
+
+    suspend fun getButtonPressStats(userId: Int, startTimestamp: String?, endTimestamp: String?): StatsResponse = dbQuery {
+        // Parse timestamps or use defaults (last 30 days if not provided)
+        val endDate = if (endTimestamp != null) {
+            try {
+                Instant.parse(endTimestamp)
+            } catch (e: Exception) {
+                Instant.now()
+            }
+        } else {
+            Instant.now()
+        }
+        
+        val startDate = if (startTimestamp != null) {
+            try {
+                Instant.parse(startTimestamp)
+            } catch (e: Exception) {
+                endDate.minusSeconds(30 * 24 * 60 * 60) // Default to 30 days before end
+            }
+        } else {
+            endDate.minusSeconds(30 * 24 * 60 * 60) // Default to 30 days before end
+        }
+        
+        // Get all user's buttons
+        val userButtons = Button.find { ButtonTable.userId eq userId }
+        
+        val buttonStats = userButtons.map { button ->
+            // Get button presses for this button within the date range
+            val presses = ButtonPress.find { 
+                (ButtonPressTable.buttonId eq button.id.value) and 
+                (ButtonPressTable.pressedAt greaterEq startDate) and
+                (ButtonPressTable.pressedAt lessEq endDate)
+            }.map { press ->
+                val dateTime = LocalDateTime.ofInstant(press.pressedAt, ZoneOffset.UTC)
+                ButtonPressData(
+                    date = dateTime.toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE),
+                    hour = dateTime.hour,
+                    pressedAt = press.pressedAt.toString()
+                )
+            }
+            
+            ButtonPressStatsResponse(
+                buttonId = button.id.value,
+                buttonTitle = button.title,
+                buttonColor = button.color,
+                presses = presses
+            )
+        }
+        
+        StatsResponse(buttonStats = buttonStats)
     }
 
 }

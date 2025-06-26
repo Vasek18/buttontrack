@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Button, CreateButtonRequest, UpdateButtonRequest } from '../types/Button';
+import { Button, CreateButtonRequest, UpdateButtonRequest, StatsResponse } from '../types/Button';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -37,5 +37,17 @@ export const buttonApi = {
 
   pressButton: async (id: number): Promise<void> => {
     await api.post(`/api/press/${id}`);
+  },
+
+  getStats: async (userId: number, startTimestamp?: string, endTimestamp?: string): Promise<StatsResponse> => {
+    let url = `/api/stats?userId=${userId}`;
+    if (startTimestamp) {
+      url += `&start=${encodeURIComponent(startTimestamp)}`;
+    }
+    if (endTimestamp) {
+      url += `&end=${encodeURIComponent(endTimestamp)}`;
+    }
+    const response = await api.get(url);
+    return response.data;
   },
 };

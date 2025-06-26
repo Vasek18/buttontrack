@@ -82,6 +82,14 @@ const Header: React.FC = () => {
                       Edit Buttons
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      className="dropdown-item"
+                      to="/stats"
+                    >
+                      Stats
+                    </Link>
+                  </li>
                 </ul>
               </>
             )}

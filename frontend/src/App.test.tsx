@@ -27,6 +27,9 @@ jest.mock('./services/api', () => ({
     updateButton: jest.fn(),
     deleteButton: jest.fn(),
     pressButton: jest.fn().mockResolvedValue(undefined),
+    getStats: jest.fn().mockResolvedValue({
+      buttonStats: []
+    }),
   }
 }));
 

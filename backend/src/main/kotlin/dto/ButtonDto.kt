@@ -50,3 +50,23 @@ data class ButtonResponse(
     val createdAt: String,
     val updatedAt: String
 )
+
+@Serializable
+data class ButtonPressStatsResponse(
+    val buttonId: Int,
+    val buttonTitle: String,
+    val buttonColor: String,
+    val presses: List<ButtonPressData>
+)
+
+@Serializable
+data class ButtonPressData(
+    val date: String, // YYYY-MM-DD format
+    val hour: Int,    // 0-23
+    val pressedAt: String // ISO instant
+)
+
+@Serializable
+data class StatsResponse(
+    val buttonStats: List<ButtonPressStatsResponse>
+)
