@@ -43,14 +43,16 @@ const LoginPage: React.FC = () => {
           </p>
         </div>
         <div className="mt-8 space-y-6">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            width="384"
-            theme="outline"
-            size="large"
-            text="signin_with"
-          />
+          <div className="mx-auto" style={{width: '384px'}}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              width="384"
+              theme="outline"
+              size="large"
+              text="signin_with"
+            />
+          </div>
         </div>
       </div>
     </div>

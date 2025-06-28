@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.Instant
 
 object ButtonTable : IntIdTable("buttons") {
-    val userId = text("user_id")
+    val userId = integer("user_id")
     val title = text("title")
     val color = text("color")
     val createdAt = timestamp("created_at").default(Instant.now())

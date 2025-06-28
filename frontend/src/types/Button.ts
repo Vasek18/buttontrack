@@ -1,6 +1,6 @@
 export interface Button {
   id: number;
-  userId: string;
+  userId: number;
   title: string;
   color: string;
   createdAt: string;

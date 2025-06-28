@@ -39,7 +39,7 @@ data class UpdateButtonRequest(
 @Serializable
 data class ButtonResponse(
     val id: Int,
-    val userId: String,
+    val userId: Int,
     val title: String,
     val color: String,
     val createdAt: String,

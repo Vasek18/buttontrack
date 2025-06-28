@@ -28,7 +28,7 @@ class ButtonService {
         }
     }
 
-    suspend fun createButton(request: CreateButtonRequest, userId: String): ButtonResponse = dbQuery {
+    suspend fun createButton(request: CreateButtonRequest, userId: Int): ButtonResponse = dbQuery {
         val button = Button.new {
             this.userId = userId
             title = request.title
@@ -44,7 +44,7 @@ class ButtonService {
     }
 
 
-    suspend fun getButtonsByUser(userId: String): List<ButtonResponse> = dbQuery {
+    suspend fun getButtonsByUser(userId: Int): List<ButtonResponse> = dbQuery {
         Button.find { ButtonTable.userId eq userId }.map { it.toResponse() }
     }
 
@@ -79,7 +79,7 @@ class ButtonService {
         }
     }
 
-    suspend fun getButtonPressStats(userId: String, startTimestamp: String?, endTimestamp: String?): StatsResponse = dbQuery {
+    suspend fun getButtonPressStats(userId: Int, startTimestamp: String?, endTimestamp: String?): StatsResponse = dbQuery {
         // Parse timestamps or use defaults (last 30 days if not provided)
         val endDate = if (endTimestamp != null) {
             try {
