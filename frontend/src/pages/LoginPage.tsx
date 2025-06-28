@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authApi } from '../services/api';
@@ -14,38 +14,22 @@ const LoginPage: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (response) => {
-      try {
-        // Get the ID token from the authorization code
-        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID!,
-            client_secret: '', // This should be handled on the backend
-            code: response.code,
-            grant_type: 'authorization_code',
-            redirect_uri: window.location.origin,
-          }),
-        });
-
-        const tokens = await tokenResponse.json();
-        
-        if (tokens.id_token) {
-          // Verify the token with your backend
-          const userInfo = await authApi.verifyToken(tokens.id_token);
-          login(tokens.id_token, userInfo);
-          navigate('/');
-        }
-      } catch (error) {
-        console.error('Login failed:', error);
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      if (credentialResponse.credential) {
+        // Verify the token with your backend
+        const userInfo = await authApi.verifyToken(credentialResponse.credential);
+        login(credentialResponse.credential, userInfo);
+        navigate('/');
       }
-    },
-    flow: 'auth-code',
-  });
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+  };
+
+  const handleGoogleError = () => {
+    console.error('Google Login Failed');
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -59,12 +43,14 @@ const LoginPage: React.FC = () => {
           </p>
         </div>
         <div className="mt-8 space-y-6">
-          <button
-            onClick={() => googleLogin()}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Sign in with Google
-          </button>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            width="384"
+            theme="outline"
+            size="large"
+            text="signin_with"
+          />
         </div>
       </div>
     </div>

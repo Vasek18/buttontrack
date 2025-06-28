@@ -11,7 +11,7 @@ import LoginPage from './pages/LoginPage';
 
 function App() {
   const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-  
+
   if (!clientId) {
     return <div>Missing Google Client ID configuration</div>;
   }

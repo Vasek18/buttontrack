@@ -4,6 +4,7 @@ import com.buttontrack.service.AuthService
 import com.buttontrack.service.UserInfo
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 
@@ -15,6 +16,11 @@ class AuthenticationPlugin {
             val plugin = AuthenticationPlugin()
             
             pipeline.intercept(ApplicationCallPipeline.Call) {
+                // Skip authentication for the auth endpoint
+                if (call.request.path() == "/api/auth") {
+                    return@intercept
+                }
+                
                 val authHeader = call.request.headers["Authorization"]
                 if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                     call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Missing or invalid authorization header"))
