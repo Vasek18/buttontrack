@@ -1,6 +1,6 @@
 export interface Button {
   id: number;
-  userId: number;
+  userId: string;
   title: string;
   color: string;
   createdAt: string;
@@ -8,7 +8,6 @@ export interface Button {
 }
 
 export interface CreateButtonRequest {
-  userId: number;
   title: string;
   color: string;
 }

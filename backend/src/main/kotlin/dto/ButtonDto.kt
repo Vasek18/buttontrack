@@ -4,16 +4,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CreateButtonRequest(
-    val userId: Int,
     val title: String,
     val color: String
 ) {
     fun validate(): List<String> {
         val errors = mutableListOf<String>()
-        
-        if (userId <= 0) {
-            errors.add("userId must be a positive integer")
-        }
         
         if (title.isBlank()) {
             errors.add("title cannot be empty")
@@ -44,7 +39,7 @@ data class UpdateButtonRequest(
 @Serializable
 data class ButtonResponse(
     val id: Int,
-    val userId: Int,
+    val userId: String,
     val title: String,
     val color: String,
     val createdAt: String,

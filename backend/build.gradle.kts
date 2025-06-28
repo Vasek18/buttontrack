@@ -34,6 +34,12 @@ dependencies {
     implementation(libs.flyway.core)
     implementation(libs.flyway.database.postgresql)
 
+    // Google Auth
+    implementation(libs.google.auth.library)
+    implementation(libs.google.auth.library.credentials)
+    implementation(libs.google.api.client)
+    implementation(libs.gson)
+
     // Testing dependencies from libs.versions.toml
     testImplementation(libs.ktor.server.tests)
     testImplementation(libs.kotlin.test.junit5)

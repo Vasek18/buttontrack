@@ -3,19 +3,46 @@ package com.buttontrack
 import com.buttontrack.dto.CreateButtonRequest
 import com.buttontrack.dto.UpdateButtonRequest
 import com.buttontrack.service.ButtonService
+import com.buttontrack.service.AuthService
+import com.buttontrack.plugins.AuthenticationPlugin
+import com.buttontrack.plugins.getUserInfo
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class AuthRequest(val idToken: String)
 
 fun Application.configureRouting() {
     val buttonService = ButtonService()
+    val authService = AuthService()
 
     routing {
+        // Public auth endpoint
+        post("/api/auth") {
+            try {
+                val request = call.receive<AuthRequest>()
+                val userInfo = authService.verifyToken(request.idToken)
+                if (userInfo != null) {
+                    call.respond(HttpStatusCode.OK, userInfo)
+                } else {
+                    call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid request"))
+            }
+        }
+
+        // Protected routes
+        install(AuthenticationPlugin) {}
         route("/api/buttons") {
             post {
                 try {
+                    val userInfo = call.getUserInfo()
+                        ?: return@post call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "User not authenticated"))
                     val request = call.receive<CreateButtonRequest>()
                     
                     val validationErrors = request.validate()
@@ -27,7 +54,7 @@ fun Application.configureRouting() {
                         return@post
                     }
                     
-                    val button = buttonService.createButton(request)
+                    val button = buttonService.createButton(request, userInfo.id)
                     call.respond(HttpStatusCode.Created, button)
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid request"))
@@ -36,13 +63,10 @@ fun Application.configureRouting() {
 
             get {
                 try {
-                    val userIdStr = call.request.queryParameters["userId"] 
-                        ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "userId parameter is required"))
-                    val userId = userIdStr.toInt()
-                    val buttons = buttonService.getButtonsByUser(userId)
+                    val userInfo = call.getUserInfo()
+                        ?: return@get call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "User not authenticated"))
+                    val buttons = buttonService.getButtonsByUser(userInfo.id)
                     call.respond(buttons)
-                } catch (e: NumberFormatException) {
-                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid userId format"))
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to fetch buttons"))
                 }
@@ -135,20 +159,14 @@ fun Application.configureRouting() {
         route("/api/stats") {
             get {
                 try {
-                    val userIdStr = call.request.queryParameters["userId"]
-                    if (userIdStr.isNullOrBlank()) {
-                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to "userId parameter is required"))
-                        return@get
-                    }
+                    val userInfo = call.getUserInfo()
+                        ?: return@get call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "User not authenticated"))
                     
-                    val userId = userIdStr.toInt()
                     val startTimestamp = call.request.queryParameters["start"]
                     val endTimestamp = call.request.queryParameters["end"]
                     
-                    val stats = buttonService.getButtonPressStats(userId, startTimestamp, endTimestamp)
+                    val stats = buttonService.getButtonPressStats(userInfo.id, startTimestamp, endTimestamp)
                     call.respond(HttpStatusCode.OK, stats)
-                } catch (e: NumberFormatException) {
-                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid userId format"))
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to fetch statistics"))
                 }

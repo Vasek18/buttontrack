@@ -7,13 +7,11 @@ const ButtonList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const userId = 1; // Hardcoded for development
-
   useEffect(() => {
     const fetchButtons = async () => {
       try {
         setLoading(true);
-        const userButtons = await buttonApi.getButtons(userId);
+        const userButtons = await buttonApi.getButtons();
         setButtons(userButtons);
       } catch (err) {
         setError('Failed to load buttons');
@@ -24,7 +22,7 @@ const ButtonList: React.FC = () => {
     };
 
     fetchButtons();
-  }, [userId]);
+  }, []);
 
   const handleButtonPress = async (button: Button) => {
     try {

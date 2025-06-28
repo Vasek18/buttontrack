@@ -13,12 +13,11 @@ const EditButtonsPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
 
-  const userId = 1; // Hardcoded for development
 
   const fetchButtons = async () => {
     try {
       setLoading(true);
-      const userButtons = await buttonApi.getButtons(userId);
+      const userButtons = await buttonApi.getButtons();
       setButtons(userButtons);
       setError(null);
     } catch (err) {
@@ -31,7 +30,7 @@ const EditButtonsPage: React.FC = () => {
 
   useEffect(() => {
     fetchButtons();
-  }, [userId]);
+  }, []);
 
   const handleFormSubmit = async (data: CreateButtonRequest | UpdateButtonRequest) => {
     // Since this is EditButtonsPage (list view), we only handle creation

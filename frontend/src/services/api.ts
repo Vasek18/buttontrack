@@ -10,9 +10,17 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const buttonApi = {
-  getButtons: async (userId: number): Promise<Button[]> => {
-    const response = await api.get(`/api/buttons?userId=${userId}`);
+  getButtons: async (): Promise<Button[]> => {
+    const response = await api.get('/api/buttons');
     return response.data;
   },
 
@@ -39,15 +47,29 @@ export const buttonApi = {
     await api.post(`/api/press/${id}`);
   },
 
-  getStats: async (userId: number, startTimestamp?: string, endTimestamp?: string): Promise<StatsResponse> => {
-    let url = `/api/stats?userId=${userId}`;
+  getStats: async (startTimestamp?: string, endTimestamp?: string): Promise<StatsResponse> => {
+    let url = '/api/stats';
+    const params = new URLSearchParams();
     if (startTimestamp) {
-      url += `&start=${encodeURIComponent(startTimestamp)}`;
+      params.append('start', startTimestamp);
     }
     if (endTimestamp) {
-      url += `&end=${encodeURIComponent(endTimestamp)}`;
+      params.append('end', endTimestamp);
+    }
+    if (params.toString()) {
+      url += '?' + params.toString();
     }
     const response = await api.get(url);
     return response.data;
   },
 };
+
+// Auth API
+export const authApi = {
+  verifyToken: async (idToken: string) => {
+    const response = await api.post('/api/auth', { idToken });
+    return response.data;
+  },
+};
+
+export default api;
