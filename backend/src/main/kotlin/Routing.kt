@@ -97,16 +97,25 @@ fun Application.configureRouting() {
 
                 get("/{id}") {
                     try {
+                        val userInfo = call.getUserInfo()
+                            ?: return@get call.respond(
+                                HttpStatusCode.Unauthorized,
+                                mapOf("error" to "User not authenticated")
+                            )
                         val idStr = call.parameters["id"] ?: return@get call.respond(
                             HttpStatusCode.BadRequest,
                             mapOf("error" to "Missing button ID")
                         )
                         val id = idStr.toInt()
+                        
+                        // Get button and check ownership
                         val button = buttonService.getButton(id)
-                        if (button != null) {
-                            call.respond(button)
-                        } else {
+                        if (button == null) {
                             call.respond(HttpStatusCode.NotFound, mapOf("error" to "Button not found"))
+                        } else if (button.userId != userInfo.id) {
+                            call.respond(HttpStatusCode.Forbidden, mapOf("error" to "You can only access your own buttons"))
+                        } else {
+                            call.respond(button)
                         }
                     } catch (e: NumberFormatException) {
                         call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid button ID format"))
@@ -117,17 +126,31 @@ fun Application.configureRouting() {
 
                 put("/{id}") {
                     try {
+                        val userInfo = call.getUserInfo()
+                            ?: return@put call.respond(
+                                HttpStatusCode.Unauthorized,
+                                mapOf("error" to "User not authenticated")
+                            )
                         val idStr = call.parameters["id"] ?: return@put call.respond(
                             HttpStatusCode.BadRequest,
                             mapOf("error" to "Missing button ID")
                         )
                         val id = idStr.toInt()
                         val request = call.receive<UpdateButtonRequest>()
-                        val button = buttonService.updateButton(id, request)
-                        if (button != null) {
-                            call.respond(button)
-                        } else {
+                        
+                        // Check if button exists and user owns it
+                        val existingButton = buttonService.getButton(id)
+                        if (existingButton == null) {
                             call.respond(HttpStatusCode.NotFound, mapOf("error" to "Button not found"))
+                        } else if (existingButton.userId != userInfo.id) {
+                            call.respond(HttpStatusCode.Forbidden, mapOf("error" to "You can only edit your own buttons"))
+                        } else {
+                            val updatedButton = buttonService.updateButton(id, request)
+                            if (updatedButton != null) {
+                                call.respond(updatedButton)
+                            } else {
+                                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to update button"))
+                            }
                         }
                     } catch (e: NumberFormatException) {
                         call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid button ID format"))
@@ -138,16 +161,30 @@ fun Application.configureRouting() {
 
                 delete("/{id}") {
                     try {
+                        val userInfo = call.getUserInfo()
+                            ?: return@delete call.respond(
+                                HttpStatusCode.Unauthorized,
+                                mapOf("error" to "User not authenticated")
+                            )
                         val idStr = call.parameters["id"] ?: return@delete call.respond(
                             HttpStatusCode.BadRequest,
                             mapOf("error" to "Missing button ID")
                         )
                         val id = idStr.toInt()
-                        val deleted = buttonService.deleteButton(id)
-                        if (deleted) {
-                            call.respond(HttpStatusCode.NoContent)
-                        } else {
+                        
+                        // Check if button exists and user owns it
+                        val existingButton = buttonService.getButton(id)
+                        if (existingButton == null) {
                             call.respond(HttpStatusCode.NotFound, mapOf("error" to "Button not found"))
+                        } else if (existingButton.userId != userInfo.id) {
+                            call.respond(HttpStatusCode.Forbidden, mapOf("error" to "You can only delete your own buttons"))
+                        } else {
+                            val deleted = buttonService.deleteButton(id)
+                            if (deleted) {
+                                call.respond(HttpStatusCode.NoContent)
+                            } else {
+                                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to delete button"))
+                            }
                         }
                     } catch (e: NumberFormatException) {
                         call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid button ID format"))
@@ -160,16 +197,30 @@ fun Application.configureRouting() {
             route("/press") {
                 post("/{id}") {
                     try {
+                        val userInfo = call.getUserInfo()
+                            ?: return@post call.respond(
+                                HttpStatusCode.Unauthorized,
+                                mapOf("error" to "User not authenticated")
+                            )
                         val idStr = call.parameters["id"] ?: return@post call.respond(
                             HttpStatusCode.BadRequest,
                             mapOf("error" to "Missing button ID")
                         )
                         val id = idStr.toInt()
-                        val success = buttonService.pressButton(id)
-                        if (success) {
-                            call.respond(HttpStatusCode.OK, mapOf("message" to "Button pressed successfully"))
-                        } else {
+                        
+                        // Check if button exists and user owns it
+                        val existingButton = buttonService.getButton(id)
+                        if (existingButton == null) {
                             call.respond(HttpStatusCode.NotFound, mapOf("error" to "Button not found"))
+                        } else if (existingButton.userId != userInfo.id) {
+                            call.respond(HttpStatusCode.Forbidden, mapOf("error" to "You can only press your own buttons"))
+                        } else {
+                            val success = buttonService.pressButton(id)
+                            if (success) {
+                                call.respond(HttpStatusCode.OK, mapOf("message" to "Button pressed successfully"))
+                            } else {
+                                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to press button"))
+                            }
                         }
                     } catch (e: NumberFormatException) {
                         call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid button ID format"))

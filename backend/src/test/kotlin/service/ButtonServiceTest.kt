@@ -42,12 +42,11 @@ class ButtonServiceTest {
     @Test
     fun `createButton should create and return a button`() = runBlocking {
         val request = CreateButtonRequest(
-            userId = testUserId,
             title = "Test Button",
             color = "#FF0000"
         )
 
-        val result = buttonService.createButton(request)
+        val result = buttonService.createButton(request, testUserId)
 
         assertNotNull(result)
         assertEquals(testUserId, result.userId)
@@ -61,11 +60,10 @@ class ButtonServiceTest {
     @Test
     fun `getButton should return button when it exists`() = runBlocking {
         val request = CreateButtonRequest(
-            userId = testUserId,
             title = "Test Button",
             color = "#FF0000"
         )
-        val created = buttonService.createButton(request)
+        val created = buttonService.createButton(request, testUserId)
 
         val result = buttonService.getButton(created.id)
 
@@ -88,10 +86,10 @@ class ButtonServiceTest {
     @Test
     fun `getButtonsByUser should return buttons for specific user`() = runBlocking {
         val otherUserId = 2
-        
-        buttonService.createButton(CreateButtonRequest(testUserId, "User1 Button1", "#FF0000"))
-        buttonService.createButton(CreateButtonRequest(testUserId, "User1 Button2", "#00FF00"))
-        buttonService.createButton(CreateButtonRequest(otherUserId, "User2 Button", "#0000FF"))
+
+        buttonService.createButton(CreateButtonRequest("User1 Button1", "#FF0000"), testUserId)
+        buttonService.createButton(CreateButtonRequest("User1 Button2", "#00FF00"), testUserId)
+        buttonService.createButton(CreateButtonRequest("User2 Button", "#0000FF"), otherUserId)
 
         val result = buttonService.getButtonsByUser(testUserId)
 
@@ -108,15 +106,13 @@ class ButtonServiceTest {
         assertTrue(result.isEmpty())
     }
 
-
     @Test
     fun `updateButton should update title and color`() = runBlocking {
         val request = CreateButtonRequest(
-            userId = testUserId,
             title = "Original Title",
             color = "#FF0000"
         )
-        val created = buttonService.createButton(request)
+        val created = buttonService.createButton(request, testUserId)
 
         val updateRequest = UpdateButtonRequest(
             title = "Updated Title",
@@ -149,16 +145,15 @@ class ButtonServiceTest {
     @Test
     fun `deleteButton should delete existing button and return true`() = runBlocking {
         val request = CreateButtonRequest(
-            userId = testUserId,
             title = "Test Button",
             color = "#FF0000"
         )
-        val created = buttonService.createButton(request)
+        val created = buttonService.createButton(request, testUserId)
 
         val result = buttonService.deleteButton(created.id)
 
         assertTrue(result)
-        
+
         val deletedButton = buttonService.getButton(created.id)
         assertNull(deletedButton)
     }
@@ -175,11 +170,10 @@ class ButtonServiceTest {
     @Test
     fun `pressButton should return true when button exists`() = runBlocking {
         val request = CreateButtonRequest(
-            userId = testUserId,
             title = "Test Button",
             color = "#FF0000"
         )
-        val created = buttonService.createButton(request)
+        val created = buttonService.createButton(request, testUserId)
 
         val result = buttonService.pressButton(created.id)
 
@@ -198,12 +192,11 @@ class ButtonServiceTest {
     @Test
     fun `getButtonPressStats should return stats with timestamp parameters`() = runBlocking {
         val request = CreateButtonRequest(
-            userId = testUserId,
             title = "Test Button",
             color = "#FF0000"
         )
-        val created = buttonService.createButton(request)
-        
+        val created = buttonService.createButton(request, testUserId)
+
         buttonService.pressButton(created.id)
 
         val startTime = "2025-06-24T12:00:00Z"
@@ -220,12 +213,11 @@ class ButtonServiceTest {
     @Test
     fun `getButtonPressStats should return stats with default time range when no timestamps provided`() = runBlocking {
         val request = CreateButtonRequest(
-            userId = testUserId,
             title = "Test Button",
             color = "#FF0000"
         )
-        val created = buttonService.createButton(request)
-        
+        val created = buttonService.createButton(request, testUserId)
+
         buttonService.pressButton(created.id)
 
         val result = buttonService.getButtonPressStats(testUserId, null, null)
