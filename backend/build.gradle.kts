@@ -48,6 +48,18 @@ dependencies {
     testImplementation("com.h2database:h2:2.2.224") // In-memory database for testing
 }
 
+tasks.named<Test>("test") {
+    useJUnitPlatform()
+    
+    // Show test results in console
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = false
+        showStackTraces = true
+    }
+}
+
 tasks.named<JavaExec>("run") {
     // Load environment variables from root .env file
     val envFile = file("../.env")

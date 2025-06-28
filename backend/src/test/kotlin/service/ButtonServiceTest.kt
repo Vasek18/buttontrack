@@ -199,8 +199,10 @@ class ButtonServiceTest {
 
         buttonService.pressButton(created.id)
 
-        val startTime = "2025-06-24T12:00:00Z"
-        val endTime = "2025-06-26T12:00:00Z"
+        // Use current date range to include the button press we just made
+        val now = java.time.Instant.now()
+        val startTime = now.minusSeconds(60 * 60).toString() // 1 hour ago
+        val endTime = now.plusSeconds(60 * 60).toString()   // 1 hour from now
         val result = buttonService.getButtonPressStats(testUserId, startTime, endTime)
 
         assertNotNull(result)
