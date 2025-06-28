@@ -2,17 +2,17 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useNavigate } from 'react-router-dom';
 
 interface UserInfo {
-  id: string;
+  id: number;
   email: string;
   name: string;
 }
 
 interface AuthContextType {
   user: UserInfo | null;
-  token: string | null;
-  login: (token: string, userInfo: UserInfo) => void;
+  login: (userInfo: UserInfo) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  checkAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,46 +31,64 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserInfo | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored auth data on app load
-    const storedToken = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('user_info');
-    
-    if (storedToken && storedUser) {
-      try {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        // Clear invalid stored data
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_info');
-      }
-    }
+    checkAuth();
   }, []);
-
-  const login = (authToken: string, userInfo: UserInfo) => {
-    setToken(authToken);
-    setUser(userInfo);
-    localStorage.setItem('auth_token', authToken);
-    localStorage.setItem('user_info', JSON.stringify(userInfo));
+  
+  const checkAuth = async () => {
+    try {
+      // Try to get user info using the session cookie
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/buttons`, {
+        method: 'GET',
+        credentials: 'include', // Include cookies
+      });
+      
+      if (response.status === 401) {
+        // Not authenticated
+        setUser(null);
+      } else if (response.ok) {
+        // We're authenticated, but we need user info
+        // For now, we'll set a minimal user object
+        // In a real app, you might have a /api/me endpoint
+        setUser({ id: 0, email: '', name: '' });
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const logout = () => {
-    setToken(null);
+  const login = (userInfo: UserInfo) => {
+    setUser(userInfo);
+  };
+
+  const logout = async () => {
+    try {
+      await fetch(`${process.env.REACT_APP_API_URL}/api/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
     setUser(null);
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_info');
   };
 
   const value = {
     user,
-    token,
     login,
     logout,
-    isAuthenticated: !!user && !!token,
+    checkAuth,
+    isAuthenticated: !!user,
   };
+  
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

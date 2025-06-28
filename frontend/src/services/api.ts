@@ -5,17 +5,10 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // Include cookies in all requests
   headers: {
     'Content-Type': 'application/json',
   },
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
 });
 
 export const buttonApi = {
@@ -60,14 +53,6 @@ export const buttonApi = {
       url += '?' + params.toString();
     }
     const response = await api.get(url);
-    return response.data;
-  },
-};
-
-// Auth API
-export const authApi = {
-  verifyToken: async (idToken: string) => {
-    const response = await api.post('/api/auth', { idToken });
     return response.data;
   },
 };

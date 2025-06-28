@@ -2,10 +2,12 @@ package com.buttontrack.plugins
 
 import com.buttontrack.service.AuthService
 import com.buttontrack.service.UserInfo
+import com.buttontrack.service.UserSession
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.sessions.*
 import io.ktor.util.*
 
 class AuthenticationPlugin {
@@ -17,24 +19,23 @@ class AuthenticationPlugin {
             
             pipeline.intercept(ApplicationCallPipeline.Call) {
                 // Skip authentication for the auth endpoint
-                if (call.request.path() == "/api/auth") {
+                if (call.request.path() == "/api/auth" || call.request.path() == "/api/logout") {
                     return@intercept
                 }
                 
-                val authHeader = call.request.headers["Authorization"]
-                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                    call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Missing or invalid authorization header"))
+                // Get session from cookie
+                val session = call.sessions.get<UserSession>()
+                if (session == null) {
+                    call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "No valid session"))
                     return@intercept finish()
                 }
                 
-                val token = authHeader.substring(7)
-                val authService = AuthService()
-                val userInfo = authService.verifyToken(token)
-                
-                if (userInfo == null) {
-                    call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
-                    return@intercept finish()
-                }
+                // Convert session to UserInfo (no DB lookup needed)
+                val userInfo = UserInfo(
+                    id = session.userId,
+                    email = session.email,
+                    name = session.name
+                )
                 
                 call.attributes.put(UserInfoKey, userInfo)
             }

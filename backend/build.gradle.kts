@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.server.host.common)
     implementation(libs.ktor.server.cors)
+    implementation(libs.ktor.server.sessions)
 
     // Logging dependency from libs.versions.toml
     implementation(libs.logback.classic)

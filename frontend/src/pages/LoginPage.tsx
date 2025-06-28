@@ -17,10 +17,23 @@ const LoginPage: React.FC = () => {
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
       if (credentialResponse.credential) {
-        // Verify the token with your backend
-        const userInfo = await authApi.verifyToken(credentialResponse.credential);
-        login(credentialResponse.credential, userInfo);
-        navigate('/');
+        // Send token to backend, which will set secure cookie
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Include cookies
+          body: JSON.stringify({ idToken: credentialResponse.credential }),
+        });
+        
+        if (response.ok) {
+          const userInfo = await response.json();
+          login(userInfo);
+          navigate('/');
+        } else {
+          console.error('Login failed');
+        }
       }
     } catch (error) {
       console.error('Login failed:', error);

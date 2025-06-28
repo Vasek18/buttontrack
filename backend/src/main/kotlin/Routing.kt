@@ -4,6 +4,7 @@ import com.buttontrack.dto.CreateButtonRequest
 import com.buttontrack.dto.UpdateButtonRequest
 import com.buttontrack.service.ButtonService
 import com.buttontrack.service.AuthService
+import com.buttontrack.service.UserSession
 import com.buttontrack.plugins.AuthenticationPlugin
 import com.buttontrack.plugins.getUserInfo
 import io.ktor.http.*
@@ -11,6 +12,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -29,15 +31,26 @@ fun Application.configureRouting() {
             post("/auth") {
                 try {
                     val request = call.receive<AuthRequest>()
-                    val userInfo = authService.verifyToken(request.idToken)
-                    if (userInfo != null) {
-                        call.respond(HttpStatusCode.OK, userInfo)
+                    val userSession = authService.verifyGoogleTokenAndCreateSession(request.idToken)
+                    if (userSession != null) {
+                        call.sessions.set(userSession)
+                        call.respond(HttpStatusCode.OK, mapOf(
+                            "id" to userSession.userId,
+                            "email" to userSession.email,
+                            "name" to userSession.name
+                        ))
                     } else {
                         call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
                     }
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid request"))
                 }
+            }
+            
+            // Logout endpoint
+            post("/logout") {
+                call.sessions.clear<UserSession>()
+                call.respond(HttpStatusCode.OK, mapOf("message" to "Logged out successfully"))
             }
 
             route("/buttons") {
