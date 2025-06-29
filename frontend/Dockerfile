@@ -3,6 +3,14 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
+# Accept build args for React env vars
+ARG REACT_APP_GOOGLE_CLIENT_ID
+ARG REACT_APP_API_URL
+
+# Pass them into the environment so React can access via process.env
+ENV REACT_APP_GOOGLE_CLIENT_ID=$REACT_APP_GOOGLE_CLIENT_ID
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
 # Copy package files
 COPY package*.json ./
 
@@ -12,10 +20,10 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the app
+# Build the app with injected env variables
 RUN npm run build
 
-# Simple serve stage
+# Serve stage
 FROM node:18-alpine
 
 WORKDIR /app
