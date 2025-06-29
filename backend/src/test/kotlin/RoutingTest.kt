@@ -14,6 +14,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -47,6 +48,11 @@ class RoutingTest {
     }
 
     private fun ApplicationTestBuilder.setupTestApp() {
+        environment {
+            config = MapApplicationConfig().apply {
+                put("ktor.deployment.googleClientId", "test-google-client-id")
+            }
+        }
         application {
             install(ContentNegotiation) {
                 json()
