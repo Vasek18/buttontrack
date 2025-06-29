@@ -22,12 +22,6 @@ import java.util.*
 
 class ButtonService {
 
-    init {
-        transaction {
-            SchemaUtils.createMissingTablesAndColumns(ButtonTable, ButtonPressTable)
-        }
-    }
-
     suspend fun createButton(request: CreateButtonRequest, userId: Int): ButtonResponse = dbQuery {
         val button = Button.new {
             this.userId = userId

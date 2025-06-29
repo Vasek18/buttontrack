@@ -1,12 +1,16 @@
 package com.buttontrack
 
+import com.buttontrack.models.ButtonTable
+import com.buttontrack.models.ButtonPressTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.application.*
 import kotlinx.coroutines.Dispatchers
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseFactory {
     fun init(environment: ApplicationEnvironment) {
@@ -37,6 +41,12 @@ object DatabaseFactory {
 
         Database.connect(dataSource)
         environment.log.info("Database connected successfully")
+        
+        // Create missing tables and columns
+        transaction {
+            SchemaUtils.createMissingTablesAndColumns(ButtonTable, ButtonPressTable)
+        }
+        environment.log.info("Database schema initialized successfully")
     }
 
     suspend fun <T> dbQuery(block: suspend () -> T): T =

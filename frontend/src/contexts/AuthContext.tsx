@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAuth = async () => {
     try {
       // Try to get user info using the session cookie
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/buttons`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/me`, {
         method: 'GET',
         credentials: 'include', // Include cookies
       });
@@ -49,10 +49,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Not authenticated
         setUser(null);
       } else if (response.ok) {
-        // We're authenticated, but we need user info
-        // For now, we'll set a minimal user object
-        // In a real app, you might have a /api/me endpoint
-        setUser({ id: 0, email: '', name: '' });
+        // Get user info from the response
+        const userInfo = await response.json();
+        setUser(userInfo);
       }
     } catch (error) {
       console.error('Auth check failed:', error);

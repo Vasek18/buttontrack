@@ -20,7 +20,8 @@ data class AuthRequest(val idToken: String)
 
 fun Application.configureRouting() {
     val buttonService = ButtonService()
-    val authService = AuthService()
+    val googleClientId = environment.config.property("ktor.deployment.googleClientId").getString()
+    val authService = AuthService(googleClientId)
 
     routing {
         // Install authentication plugin globally, but it will skip /api/auth
@@ -29,20 +30,28 @@ fun Application.configureRouting() {
         route("/api") {
             // Public auth endpoint
             post("/auth") {
+                println("[AUTH] Received authentication request")
                 try {
                     val request = call.receive<AuthRequest>()
+                    println("[AUTH] Parsed request, token length: ${request.idToken.length}")
+                    
                     val userSession = authService.verifyGoogleTokenAndCreateSession(request.idToken)
                     if (userSession != null) {
+                        println("[AUTH] Successfully verified token for user: ${userSession.email}")
                         call.sessions.set(userSession)
                         call.respond(HttpStatusCode.OK, mapOf(
-                            "id" to userSession.userId,
+                            "id" to userSession.userId.toString(),
                             "email" to userSession.email,
                             "name" to userSession.name
                         ))
+                        println("[AUTH] Sent successful response")
                     } else {
+                        println("[AUTH] Token verification failed - invalid token")
                         call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
                     }
                 } catch (e: Exception) {
+                    println("[AUTH] Exception during authentication: ${e.javaClass.simpleName}: ${e.message}")
+                    e.printStackTrace()
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid request"))
                 }
             }
@@ -51,6 +60,24 @@ fun Application.configureRouting() {
             post("/logout") {
                 call.sessions.clear<UserSession>()
                 call.respond(HttpStatusCode.OK, mapOf("message" to "Logged out successfully"))
+            }
+            
+            // Get current user info endpoint
+            get("/me") {
+                try {
+                    val userInfo = call.getUserInfo()
+                        ?: return@get call.respond(
+                            HttpStatusCode.Unauthorized,
+                            mapOf("error" to "User not authenticated")
+                        )
+                    call.respond(HttpStatusCode.OK, mapOf(
+                        "id" to userInfo.id.toString(),
+                        "email" to userInfo.email,
+                        "name" to userInfo.name
+                    ))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to get user info"))
+                }
             }
 
             route("/buttons") {

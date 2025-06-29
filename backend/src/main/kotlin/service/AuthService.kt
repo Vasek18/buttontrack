@@ -30,9 +30,9 @@ data class UserSession(
     val sessionId: String = UUID.randomUUID().toString()
 )
 
-class AuthService {
+class AuthService(private val googleClientId: String) {
     private val verifier = GoogleIdTokenVerifier.Builder(NetHttpTransport(), GsonFactory())
-        .setAudience(listOf(System.getenv("GOOGLE_CLIENT_ID")))
+        .setAudience(listOf(googleClientId))
         .build()
         
     init {
@@ -43,12 +43,19 @@ class AuthService {
 
     suspend fun verifyGoogleTokenAndCreateSession(idToken: String): UserSession? = dbQuery {
         try {
+            println("[AUTH_SERVICE] Starting token verification")
+            println("[AUTH_SERVICE] Token starts with: ${idToken.take(50)}...")
+            println("[AUTH_SERVICE] Google Client ID: $googleClientId")
+            
             val googleIdToken = verifier.verify(idToken)
             if (googleIdToken != null) {
+                println("[AUTH_SERVICE] Token verified successfully by Google")
                 val payload = googleIdToken.payload
                 val googleUserId = payload.subject
                 val email = payload.email
                 val name = payload["name"] as String? ?: ""
+                
+                println("[AUTH_SERVICE] Token payload - User ID: $googleUserId, Email: $email, Name: $name")
                 
                 // Find or create user
                 val userAuth = UserAuth.find { 
@@ -57,6 +64,7 @@ class AuthService {
                 }.firstOrNull()
                 
                 val user = if (userAuth != null) {
+                    println("[AUTH_SERVICE] Found existing user with ID: ${userAuth.userId}")
                     // Existing user, update info if needed
                     userAuth.email = email
                     userAuth.updatedAt = Instant.now()
@@ -65,6 +73,7 @@ class AuthService {
                         this.updatedAt = Instant.now()
                     }
                 } else {
+                    println("[AUTH_SERVICE] Creating new user")
                     // New user, create both user and auth records
                     val newUser = User.new {
                         this.name = name
@@ -81,20 +90,25 @@ class AuthService {
                         this.updatedAt = Instant.now()
                     }
                     
+                    println("[AUTH_SERVICE] Created new user with ID: ${newUser.id.value}")
                     newUser
                 }
                 
-                UserSession(
+                val session = UserSession(
                     userId = user.id.value,
                     email = email,
                     name = name,
                     sessionId = UUID.randomUUID().toString()
                 )
+                println("[AUTH_SERVICE] Created session for user ID: ${session.userId}")
+                session
             } else {
+                println("[AUTH_SERVICE] Google token verification returned null")
                 null
             }
         } catch (e: Exception) {
-            println("Error verifying Google token: ${e.message}")
+            println("[AUTH_SERVICE] Error verifying Google token: ${e.javaClass.simpleName}: ${e.message}")
+            e.printStackTrace()
             null
         }
     }
