@@ -27,6 +27,11 @@ fun Application.configureRouting() {
         // Install authentication plugin globally, but it will skip /api/auth
         install(AuthenticationPlugin) {}
 
+        // Health check endpoint
+        get("/health") {
+            call.respond(HttpStatusCode.OK, mapOf("status" to "healthy"))
+        }
+
         route("/api") {
             // Public auth endpoint
             post("/auth") {
