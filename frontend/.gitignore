@@ -13,9 +13,6 @@
 !.yarn/sdks
 !.yarn/versions
 
-# lockfiles
-package-lock.json
-
 # testing
 /coverage
 
