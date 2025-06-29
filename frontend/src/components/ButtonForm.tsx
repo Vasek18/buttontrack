@@ -18,7 +18,6 @@ const ButtonForm: React.FC<ButtonFormProps> = ({
   const [color, setColor] = useState(button?.color || '#3B82F6');
   const [errors, setErrors] = useState<string[]>([]);
 
-  const userId = 1; // Hardcoded for development
 
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
@@ -49,7 +48,7 @@ const ButtonForm: React.FC<ButtonFormProps> = ({
       onSubmit({ title: title.trim(), color });
     } else {
       // Create new button
-      onSubmit({ userId, title: title.trim(), color });
+      onSubmit({ title: title.trim(), color });
     }
   };
 

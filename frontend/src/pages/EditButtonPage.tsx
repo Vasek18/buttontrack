@@ -13,7 +13,6 @@ const EditButtonPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
-  const userId = 1; // Hardcoded for development
 
   useEffect(() => {
     const fetchButton = async () => {
@@ -25,7 +24,7 @@ const EditButtonPage: React.FC = () => {
 
       try {
         setLoading(true);
-        const userButtons = await buttonApi.getButtons(userId);
+        const userButtons = await buttonApi.getButtons();
         const foundButton = userButtons?.find(b => b.id === parseInt(buttonId));
         
         if (foundButton) {
@@ -43,7 +42,7 @@ const EditButtonPage: React.FC = () => {
     };
 
     fetchButton();
-  }, [buttonId, userId]);
+  }, [buttonId]);
 
   const handleUpdateButton = async (data: UpdateButtonRequest) => {
     if (!button) return;

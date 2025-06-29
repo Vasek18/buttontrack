@@ -22,15 +22,9 @@ import java.util.*
 
 class ButtonService {
 
-    init {
-        transaction {
-            SchemaUtils.createMissingTablesAndColumns(ButtonTable, ButtonPressTable)
-        }
-    }
-
-    suspend fun createButton(request: CreateButtonRequest): ButtonResponse = dbQuery {
+    suspend fun createButton(request: CreateButtonRequest, userId: Int): ButtonResponse = dbQuery {
         val button = Button.new {
-            userId = request.userId
+            this.userId = userId
             title = request.title
             color = request.color
             createdAt = Instant.now()

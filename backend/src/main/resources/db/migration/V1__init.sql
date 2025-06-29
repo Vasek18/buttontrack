@@ -1,9 +1,19 @@
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    email TEXT NOT NULL UNIQUE,
     name TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     updated_at TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE TABLE user_auth (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    provider TEXT NOT NULL,
+    provider_user_id TEXT NOT NULL,
+    email TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now(),
+    UNIQUE(provider, provider_user_id)
 );
 
 CREATE TABLE buttons (

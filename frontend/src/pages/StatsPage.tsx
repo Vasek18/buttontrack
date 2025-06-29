@@ -30,7 +30,6 @@ const StatsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const userId = 1; // Hardcoded for development
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -44,7 +43,7 @@ const StatsPage: React.FC = () => {
         const startTimestamp = startDate.toISOString();
         const endTimestamp = endDate.toISOString();
         
-        const statsData = await buttonApi.getStats(userId, startTimestamp, endTimestamp);
+        const statsData = await buttonApi.getStats(startTimestamp, endTimestamp);
         setStats(statsData);
       } catch (err) {
         setError('Failed to load statistics');
@@ -55,7 +54,7 @@ const StatsPage: React.FC = () => {
     };
 
     fetchStats();
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {

@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.server.host.common)
     implementation(libs.ktor.server.cors)
+    implementation(libs.ktor.server.sessions)
 
     // Logging dependency from libs.versions.toml
     implementation(libs.logback.classic)
@@ -34,11 +35,29 @@ dependencies {
     implementation(libs.flyway.core)
     implementation(libs.flyway.database.postgresql)
 
+    // Google Auth
+    implementation(libs.google.auth.library)
+    implementation(libs.google.auth.library.credentials)
+    implementation(libs.google.api.client)
+    implementation(libs.gson)
+
     // Testing dependencies from libs.versions.toml
     testImplementation(libs.ktor.server.tests)
     testImplementation(libs.kotlin.test.junit5)
     testImplementation(libs.kotlin.reflect) // Required by Exposed
     testImplementation("com.h2database:h2:2.2.224") // In-memory database for testing
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
+    
+    // Show test results in console
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = false
+        showStackTraces = true
+    }
 }
 
 tasks.named<JavaExec>("run") {

@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { logout, user } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsMenuOpen(false);
   };
 
   // Close menu when route changes
@@ -89,6 +96,20 @@ const Header: React.FC = () => {
                     >
                       Stats
                     </Link>
+                  </li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li>
+                    <span className="dropdown-item-text small text-muted">
+                      {user?.name} ({user?.email})
+                    </span>
+                  </li>
+                  <li>
+                    <button
+                      className="dropdown-item"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </button>
                   </li>
                 </ul>
               </>

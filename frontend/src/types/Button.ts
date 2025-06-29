@@ -8,7 +8,6 @@ export interface Button {
 }
 
 export interface CreateButtonRequest {
-  userId: number;
   title: string;
   color: string;
 }

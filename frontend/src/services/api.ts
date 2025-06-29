@@ -5,14 +5,15 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // Include cookies in all requests
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 export const buttonApi = {
-  getButtons: async (userId: number): Promise<Button[]> => {
-    const response = await api.get(`/api/buttons?userId=${userId}`);
+  getButtons: async (): Promise<Button[]> => {
+    const response = await api.get('/api/buttons');
     return response.data;
   },
 
@@ -39,15 +40,21 @@ export const buttonApi = {
     await api.post(`/api/press/${id}`);
   },
 
-  getStats: async (userId: number, startTimestamp?: string, endTimestamp?: string): Promise<StatsResponse> => {
-    let url = `/api/stats?userId=${userId}`;
+  getStats: async (startTimestamp?: string, endTimestamp?: string): Promise<StatsResponse> => {
+    let url = '/api/stats';
+    const params = new URLSearchParams();
     if (startTimestamp) {
-      url += `&start=${encodeURIComponent(startTimestamp)}`;
+      params.append('start', startTimestamp);
     }
     if (endTimestamp) {
-      url += `&end=${encodeURIComponent(endTimestamp)}`;
+      params.append('end', endTimestamp);
+    }
+    if (params.toString()) {
+      url += '?' + params.toString();
     }
     const response = await api.get(url);
     return response.data;
   },
 };
+
+export default api;
