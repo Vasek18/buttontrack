@@ -2,14 +2,13 @@
 
 A personal behavior-tracking web app where users can create and press custom buttons (e.g., "Shaved", "Mood: Good", "Woke up"). Each press is timestamped for tracking daily habits.
 
-**Note: This project was created entirely by AI.**
+**Note: This project was created (almost) entirely by AI as a challenge.**
 
 ## Quick Start
 
 ### Local Development
 ```bash
 docker compose up -d
-cd backend && ./gradlew run
 cd frontend && npm start
 ```
 
@@ -26,6 +25,7 @@ cd frontend && npm start
 ### Frontend (frontend/.env)
 ```
 REACT_APP_API_URL=http://localhost:8080
+REACT_APP_GOOGLE_CLIENT_ID=client_id
 ```
 
 ### Backend/Database (.env)
@@ -33,7 +33,7 @@ REACT_APP_API_URL=http://localhost:8080
 DB_URL=jdbc:postgresql://localhost:5432/db_name
 DB_USER=user
 DB_PASSWORD=password
-DB_NAME=db_name
+GOOGLE_CLIENT_ID=client_id
 ```
 
 ## Testing
