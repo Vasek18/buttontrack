@@ -19,7 +19,7 @@ class AuthenticationPlugin {
             
             pipeline.intercept(ApplicationCallPipeline.Call) {
                 // Skip authentication for the auth endpoint
-                if (call.request.path() == "/api/auth" || call.request.path() == "/api/logout") {
+                if (call.request.path() == "/api/auth" || call.request.path() == "/api/logout" || call.request.path() == "/health") {
                     return@intercept
                 }
                 
