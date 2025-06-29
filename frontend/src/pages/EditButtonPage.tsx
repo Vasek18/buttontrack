@@ -24,8 +24,7 @@ const EditButtonPage: React.FC = () => {
 
       try {
         setLoading(true);
-        const userButtons = await buttonApi.getButtons();
-        const foundButton = userButtons?.find(b => b.id === parseInt(buttonId));
+        const foundButton = await buttonApi.getButton(parseInt(buttonId));
         
         if (foundButton) {
           setButton(foundButton);
