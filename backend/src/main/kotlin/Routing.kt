@@ -30,28 +30,20 @@ fun Application.configureRouting() {
         route("/api") {
             // Public auth endpoint
             post("/auth") {
-                println("[AUTH] Received authentication request")
                 try {
                     val request = call.receive<AuthRequest>()
-                    println("[AUTH] Parsed request, token length: ${request.idToken.length}")
-                    
                     val userSession = authService.verifyGoogleTokenAndCreateSession(request.idToken)
                     if (userSession != null) {
-                        println("[AUTH] Successfully verified token for user: ${userSession.email}")
                         call.sessions.set(userSession)
                         call.respond(HttpStatusCode.OK, mapOf(
                             "id" to userSession.userId.toString(),
                             "email" to userSession.email,
                             "name" to userSession.name
                         ))
-                        println("[AUTH] Sent successful response")
                     } else {
-                        println("[AUTH] Token verification failed - invalid token")
                         call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid token"))
                     }
                 } catch (e: Exception) {
-                    println("[AUTH] Exception during authentication: ${e.javaClass.simpleName}: ${e.message}")
-                    e.printStackTrace()
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid request"))
                 }
             }
