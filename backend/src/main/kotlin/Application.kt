@@ -29,7 +29,7 @@ fun Application.module() {
         allowSameOrigin = true
         allowHost("localhost:3000")
         allowHost("127.0.0.1:3000")
-        allowHost(System.getenv("FRONTEND_URL"))
+        allowHost(System.getenv("FRONTEND_HOST"))
     }
     
     // Configure sessions
